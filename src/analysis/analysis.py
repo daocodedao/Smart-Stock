@@ -172,9 +172,22 @@ class ThsRealTimeChangeAnalysis(BaseAnalysis):
         """TuShare数据今日收盘价大于等于最高价的股票"""
         results = await asyncio.gather(*[self.get_data(how=x) for x in self.how])
         final_res = {}
+        try:
+            #统计
+            merged = None
+            for k, v in results:
+                v[f'{k}_count'] = v.groupby('代码', as_index=False)['名称'].transform('count')
+                v = v[['代码', '名称', f'{k}_count']]
+                if merged is None:
+                    merged = v
+                    continue
+                merged = merged.merge(v, on=['代码','名称'], how='inner')
+            df_unique = merged.drop_duplicates(subset='代码', keep='first')
+            res = super().analysis(df_unique, pd2dict=True)
+            final_res['汇总'] = res
+        except Exception as e:
+            pass
         for how, result in results:
-            if '代码' in result.columns and '名称' in result.columns:
-                result['count'] = result.groupby('代码', as_index=False)['名称'].transform('count')
             res = super().analysis(result, pd2dict=True) #按市场过滤
             final_res[how] = res
         return final_res
@@ -182,8 +195,6 @@ class ThsRealTimeChangeAnalysis(BaseAnalysis):
     async def get_data(self, how):
         return how, qs.realtime_change(how)
 
-    def group_statistics(self, data):
-        """按股票统计出现次数"""
         
     
 if __name__ == '__main__':
