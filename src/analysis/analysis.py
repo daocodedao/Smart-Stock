@@ -173,6 +173,8 @@ class ThsRealTimeChangeAnalysis(BaseAnalysis):
         results = await asyncio.gather(*[self.get_data(how=x) for x in self.how])
         final_res = {}
         for how, result in results:
+            if '代码' in result.columns and '名称' in result.columns:
+                result['count'] = result.groupby('代码', as_index=False)['名称'].transform('count')
             res = super().analysis(result, pd2dict=True) #按市场过滤
             final_res[how] = res
         return final_res
@@ -180,5 +182,9 @@ class ThsRealTimeChangeAnalysis(BaseAnalysis):
     async def get_data(self, how):
         return how, qs.realtime_change(how)
 
+    def group_statistics(self, data):
+        """按股票统计出现次数"""
+        
+    
 if __name__ == '__main__':
     merge_real_time_data('600649', [], frequency='60')
