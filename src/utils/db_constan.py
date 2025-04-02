@@ -11,6 +11,8 @@ DATABASE=os.getenv("MYSQL_DB_NAME","smart_stock")
 
 # DB_PORT = 3308
 DB_PORT = os.getenv("MYSQL_DB_PORT", 3306)
+
+#创建歪枣网股票基本信息表
 CREATE_TABLE_STOCK_LIST_SQL =  """CREATE TABLE STOCK_LIST (
                             CODE  CHAR(20) PRIMARY KEY,
                             NAME  CHAR(20),
@@ -25,9 +27,10 @@ CREATE_TABLE_STOCK_LIST_SQL =  """CREATE TABLE STOCK_LIST (
                             SSDATE DATETIME,
                             Z50 CHAR(100),
                             Z52 CHAR(100),
-                            Z53 TEXT,
-                              )"""  #创建歪枣网股票基本信息表
+                            Z53 TEXT
+                              )"""  
 
+#插入股票基本信息模板
 INSERT_STOCK_LIST_SQL_TEMPLATE = """
                                 INSERT INTO STOCK_LIST(CODE, NAME, STYPE, HSGT, BK, ROE, ZGB, LTGB, LTSZ, ZSZ, SSDATE, Z50, Z52, Z53) 
                                 VALUES({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}) ON DUPLICATE KEY UPDATE
@@ -44,7 +47,7 @@ INSERT_STOCK_LIST_SQL_TEMPLATE = """
                                 Z50=VALUES(Z50),
                                 Z52=VALUES(Z52),
                                 Z53=VALUES(Z53)
-                            """ #插入股票基本信息模板
+                            """ 
 
 INSERT_TUSHARE_REAL_TIME_DATA_SQL = """
                                 INSERT INTO TUSHARE_REALTIME_DATA (
@@ -118,7 +121,7 @@ INSERT_K_MIN_DATA_SQL = """
                                 DATE=VALUES(DATE), CODE=VALUES(CODE), OPEN=VALUES(OPEN), HIGH=VALUES(HIGH), LOW=VALUES(LOW), VOLUME=VALUES(VOLUME),CLOSE=VALUES(CLOSE);
                             """
 
-
+#创建用户信息表
 CREATE_TABLE_USER_INFO_SQL =  """CREATE TABLE USER_INFO (
                             USERID  CHAR(20) PRIMARY KEY,
                             PASSWORD CHAR(100),
@@ -126,23 +129,27 @@ CREATE_TABLE_USER_INFO_SQL =  """CREATE TABLE USER_INFO (
                             EMAIL CHAR(20),  
                             ROLE INT DEFAULT 0,
                             STATUS INT DEFAULT 0
-                              );"""  #创建用户信息表
+                              );"""  
 
+#查看用户是否已经注册
 SELECT_USER_INFO_SQL = """
-                    SELECT *FROM USER_INFO WHERE USERID='{}' AND STATUS=0;
-                    """ #查看用户是否已经注册
-
+                    SELECT * FROM USER_INFO WHERE USERID='{}' AND STATUS=0;
+                    """ 
+#用户注册
 INSERT_USER_INFO_SQL = """
                       INSERT INTO USER_INFO(USERID, PASSWORD, NAME, EMAIL, ROLE) 
                                 VALUES('{}', '{}', '{}', '{}', {});
 
-                      """ #用户注册
-CONFIRM_USER_PASSWD_SQL = """SELECT *FROM USER_INFO WHERE USERID='{}' AND PASSWORD='{}' AND STATUS=0;"""  #验证密码
+                      """ 
+#验证密码
+CONFIRM_USER_PASSWD_SQL = """SELECT *FROM USER_INFO WHERE USERID='{}' AND PASSWORD='{}' AND STATUS=0;"""  
 
+#重置密码
 RESET_USER_PASSWD_SQL = """
                       UPDATE USER_INFO SET PASSWORD='{}' WHERE USERID='{}' AND STATUS=0;
-                    """ #重置密码
+                    """ 
 
+#创建交割单表
 CREATE_TABLE_ORDER_INFO_SQL = """
                               CREATE TABLE ORDER_INFO(
                                 ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -155,9 +162,10 @@ CREATE_TABLE_ORDER_INFO_SQL = """
                                 PRICE FLOAT,
                                 STOCK_STATUS int,
                                 STATUS int DEFAULT 0
-                              )
-                          """ #创建交割单表
+                              );
+                          """ 
 
+#新增交割单
 INSERT_ORDER_INFO_SQL = """
                       INSERT INTO ORDER_INFO (
                                     USERID, STOCK_NAME, CODE, TRADE_DATE, VOLUME, ACCOUNT, PRICE, STOCK_STATUS
@@ -166,25 +174,28 @@ INSERT_ORDER_INFO_SQL = """
                                 CODE=VALUES(CODE), TRADE_DATE=VALUES(TRADE_DATE),
                                 VOLUME=VALUES(VOLUME), ACCOUNT=VALUES(ACCOUNT),
                                 PRICE=VALUES(PRICE), STOCK_STATUS=VALUES(STOCK_STATUS);
-                      """ #新增交割单
+                      """ 
+#修改交割单
 UPDATE_ORDER_INFO_SQL = """
                     UPDATE ORDER_INFO SET STOCK_NAME='{}', CODE='{}', TRADE_DATE='{}', VOLUME={},
                                       ACCOUNT={}, PRICE={}, STOCK_STATUS={}
                     WHERE ID={} AND USERID={} AND STATUS=0;
-                    """#修改交割单
+                    """
 
+#根据股票名查询交割单
 SELECT_ORDER_INFO_SQL = """
                     SELECT ID, STOCK_NAME, CODE, TRADE_DATE, PRICE, VOLUME, ACCOUNT, STOCK_STATUS FROM ORDER_INFO
                      WHERE USERID='{}' AND STOCK_NAME='{}' AND STATUS=0;
-                        """ #根据股票名查询交割单
+                        """ 
+#根据股票名查询交割单
 SELECT_ORDER_INFO_ALL_SQL = """
                     SELECT ID, STOCK_NAME, CODE, TRADE_DATE, PRICE, VOLUME, ACCOUNT, STOCK_STATUS FROM ORDER_INFO
                      WHERE USERID='{}' AND STATUS=0;
-                        """ #根据股票名查询交割单
-
+                        """ 
+#删除指定id的交割单
 DELETE_ORDER_INFO_SQL = """
                     UPDATE ORDER_INFO SET STATUS=1 WHERE ID={} AND USERID='{}';
-                  """ #删除指定id的交割单
+                  """ 
 
 # ---------------------- mongodb ------------------
 MONGODB_PORT = os.getenv("MONGODB_PORT", 28018)
