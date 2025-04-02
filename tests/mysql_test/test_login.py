@@ -1,3 +1,7 @@
+# import 路径修改
+import sys,os
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+
 from src.database.mysql_user_util import *
 from src.utils.db_constan import *
 

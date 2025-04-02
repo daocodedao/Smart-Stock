@@ -6,9 +6,55 @@ Smart-Stock可以是一个复盘及量化策略回测的项目，初衷是利用
 ## 2 系统架构图
 理想中结构图如下所示，该仓模型预测部分暂时不支持。
 ![alt text](./docs/imgs/design.jpg)
-## 3 免责声明
-该项目仅用于学习研究，如用于商业行为请获得作者许可。
-## 4 学习交流&合作
-邮箱：qingyuan_li9@163.com
-## 5 未来计划
-该项目还是一个未完成品，后续会继续优化维护并且支持新的功能，欢迎社区开发者进行二次开发、扩展！
+
+
+## 使用
+### 数据库
+```
+
+CREATE DATABASE smart_stock
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_general_ci;
+
+```
+
+
+### 环境搭建
+```
+python3.10 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt 
+
+```
+### 修改 qstock
+```
+venv/lib/python3.10/site-packages/qstock/data/util.py
+
+- from py_mini_racer import py_mini_racer
++ from py_mini_racer import MiniRacer
+
+- js_code = py_mini_racer.MiniRacer()
++ js_code = MiniRacer()
+
+venv/lib/python3.10/site-packages/qstock/data/money.py
+- from py_mini_racer import py_mini_racer
++ from py_mini_racer import MiniRacer
+
+- js_code = py_mini_racer.MiniRacer()
++ js_code = MiniRacer()
+
+# 手动安装
+pip install mini-racer
+pip install pyfolio
+
+```
+
+
+安装成功后可通过以下命令启动后端服务
+```
+cd src/web/
+python src/web/main.py --host 0.0.0.0 --port 38888
+# 参数说明
+    --host 指定服务绑定的ip
+    --port 指定服务绑定的端口
+```

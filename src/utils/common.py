@@ -14,7 +14,7 @@ from src.utils.tushare_constant import *
 import uuid
 import math
 import holidays
-import qstock as qs
+# import qstock as qs
 from functools import lru_cache
 import importlib
 

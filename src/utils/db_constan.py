@@ -1,9 +1,14 @@
 """Mysql 配置"""
 import os
-HOST=os.getenv('MYSQL_HOST', '0.0.0.0')
+from dotenv import load_dotenv
+load_dotenv()
+
+HOST=os.getenv('MYSQL_HOST', '')
 USER=os.getenv("MYSQL_USER", 'root')
-PASSWORD=os.getenv("MYSQL_PASSWORD", "smart-stock")
+PASSWORD=os.getenv("MYSQL_PASSWORD", "")
 DATABASE=os.getenv("MYSQL_DB_NAME","smart_stock")
+
+
 # DB_PORT = 3308
 DB_PORT = os.getenv("MYSQL_DB_PORT", 3306)
 CREATE_TABLE_STOCK_LIST_SQL =  """CREATE TABLE STOCK_LIST (

@@ -1,9 +1,13 @@
-from src.backtest.backtrader_engine import BackTraderEngine
-from src.backtest.backtrade_params import BackTraderParams, BrokerParams, OrderParams
-from src.backtest.strategys.ema_strategy import EMAStockStrategy
 import backtrader as bt
 import pandas as pd
 from multiprocessing import Queue
+# import 路径修改
+import sys,os
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+from src.backtest.backtrader_engine import BackTraderEngine
+from src.backtest.backtrade_params import BackTraderParams, BrokerParams, OrderParams
+from src.backtest.strategys.ema_strategy import EMAStockStrategy
+
 
 def test_run():
     params = BackTraderParams(stock_list=['600640'], start_date='2023-01-01', end_date='2024-04-28', msg_queen=Queue())
