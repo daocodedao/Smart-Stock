@@ -28,7 +28,7 @@ pip install -r requirements.txt
 ```
 ### 修改 qstock
 ```
-venv/lib/python3.10/site-packages/qstock/data/util.py
+vim venv/lib/python3.10/site-packages/qstock/data/util.py
 
 - from py_mini_racer import py_mini_racer
 + from py_mini_racer import MiniRacer
@@ -36,7 +36,7 @@ venv/lib/python3.10/site-packages/qstock/data/util.py
 - js_code = py_mini_racer.MiniRacer()
 + js_code = MiniRacer()
 
-venv/lib/python3.10/site-packages/qstock/data/money.py
+vim venv/lib/python3.10/site-packages/qstock/data/money.py
 - from py_mini_racer import py_mini_racer
 + from py_mini_racer import MiniRacer
 
@@ -49,12 +49,55 @@ pip install pyfolio
 
 ```
 
-
+### 后端服务
 安装成功后可通过以下命令启动后端服务
 ```
-cd src/web/
-python src/web/main.py --host 0.0.0.0 --port 38888
+python src/web/smart_stock_backend.py --host 0.0.0.0 --port 38888
 # 参数说明
     --host 指定服务绑定的ip
     --port 指定服务绑定的端口
+```
+
+### 前端服务
+## 3 前端环境搭建
+克隆代码
+```
+git clone https://github.com/Reyn-AI/Smart-Stock-Web.git
+cd Smart-Stock-Web/
+```
+运行服务
+```
+## 安装vue3环境
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+npm init vite@latest
+## 安装运行环境
+npm i
+## 修改后端服务ip和端口
+vim .env
+    VITE_SERVER_IP=xxx.xxx.xxx.xxx
+    VITE_SERVER_PORT=xxxxx
+## 启动服务
+npm run dev
+```
+
+
+### frp
+```
+cat /data/work/frp/frpc.ini 
+vim /data/work/frp/frpc.ini
+
+# gradio_university 6610
+[ssh-SmartStock38888]
+type = tcp
+local_ip = 127.0.0.1
+local_port = 38888
+remote_port = 38888
+use_encryption = false
+use_compression = false
+
+# 重启frp
+sudo systemctl restart  supervisor
+sudo supervisorctl reload
+sudo supervisord
 ```
