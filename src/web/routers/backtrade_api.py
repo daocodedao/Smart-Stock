@@ -17,6 +17,7 @@ from src.utils.registy import *
 from functools import partial
 from src.backtest.strategys.size_strategy import *
 import numpy as np
+from src.utils.logger_settings import api_logger
 
 router = APIRouter()
 
@@ -57,6 +58,7 @@ class GetRecordItem(BaseModel):
 @router.post('/backtrade/save_record')
 async def save_backtrader_record(params:BackTraderRecordItem):
     """保存回测记录"""
+    api_logger.info(f"Saving backtrader record for user: {params.userID}, record name: {params.recordName}")
     res = {'code':200, 'msg':'保存成功', 'status':1}
     try:
         now = get_time('%Y-%m-%d %H:%M:%S')
@@ -82,34 +84,43 @@ async def save_backtrader_record(params:BackTraderRecordItem):
                 'buySizeStrategys':params.buySizeStrategys,
                 'sellSizeStrategys':params.sellSizeStrategys}
         mogon.insert_backtrader_record(data)
+        api_logger.info(f"Successfully saved backtrader record for user: {params.userID}")
     except Exception as e:
+        error_msg = str(e)
+        api_logger.error(f"Error saving backtrader record: {error_msg}")
         res['code'] = 500
         res['status'] = 0
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
         return res
 
 @router.post('/backtrade/delete_record_by_id')
 async def delete_backtrader_record_by_id(params:GetRecordItem):
     """根据id删除记录"""
+    api_logger.info(f"Deleting backtrader record for user: {params.userID}, record id: {params.id}")
     res = {'code':200, 'msg':'操作成功', 'status':1}
     try:
         mogon = MongoDBUtil()
         mogon.delete_backtrader_record(id=params.id)
+        api_logger.info(f"Successfully deleted backtrader record id: {params.id}")
     except Exception as e:
+        error_msg = str(e)
+        api_logger.error(f"Error deleting backtrader record: {error_msg}")
         res['code'] = 500
         res['status'] = 0
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
         return res
 
 @router.post('/backtrade/get_record_list')
 async def get_backtrader_record_list(params:GetRecordItem):
     """获取回测记录"""
+    api_logger.info(f"Getting backtrader record list for user: {params.userID}")
     res = {'code':200, 'msg':'请求成功', 'status':1, 'data':[], 'colNames':[], 'rawData':{}}
     try:
         mogon = MongoDBUtil()
         data = mogon.get_backtrader_record_data(user_id=params.userID) #{'_id', 'datetime', 'recordName', 'returnTable':[{'name', 'value'}]}
+        api_logger.debug(f"Retrieved {len(data)} backtrader records for user: {params.userID}")
         res['rawData'] = {x['_id']:x for x in data}
         data_ = []
         for x in data:
@@ -134,9 +145,11 @@ async def get_backtrader_record_list(params:GetRecordItem):
             res['colNames'] = colNames
             
     except Exception as e:
+        error_msg = str(e)
+        api_logger.error(f"Error getting backtrader record list: {error_msg}")
         res['code'] = 500
         res['status'] = 0
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
         return res
 
@@ -247,6 +260,7 @@ def gen_strategy_by_params(buy_params: list,
 async def backtrade_start(websocket:WebSocket):
     """开始回测"""
     await manager.connect(websocket)
+    api_logger.info("New websocket connection for backtrade started")
     try:
         r_params = await websocket.receive_text()
         r_params = eval(r_params)
@@ -255,8 +269,12 @@ async def backtrade_start(websocket:WebSocket):
         code = r_params['code'] #回测股票代码
         code = code.replace('，', ',')
         codes = code.split(',')
+        api_logger.info(f"Starting backtest for codes: {codes}")
+        
         if len(codes)==0:
+            api_logger.warning("No stock codes provided for backtest")
             manager.send_personal_message(json.dumps({'type':'end'}, ensure_ascii=False), websocket) #结束符
+        
         buy_strategys = r_params.get('buyStrategys', [])
         sell_strategys = r_params.get('sellStrategys', [])
         buy_size_strategy = r_params.get('buySizeStrategy')
@@ -358,6 +376,7 @@ async def backtrade_start(websocket:WebSocket):
         manager.disconnect(websocket)
 
 def engine_run(engine: BackTraderEngine):
+    api_logger.info("Starting backtrader engine run")
     results =  engine.run()
     res_msg = {'type':'metrics', 'data':[], 'dayReturns':[], 'benchmark':[]} #benchmark基准日收益率
     if engine.params.msg_queen is not None:

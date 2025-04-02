@@ -7,6 +7,7 @@ from src.crawls.stock_market_legu import *
 from fastapi import APIRouter
 from src.database.mongodb_utils import MongoDBUtil
 from src.analysis.analysis import *
+from src.utils.logger_settings import api_logger
 
 router = APIRouter()
 
@@ -16,28 +17,33 @@ class GetByDate(BaseModel):
 @router.post('/overall/zs')
 async def get_zs_real_time_data():
     """获取三大指数实时数据"""
+    api_logger.info("获取三大指数实时数据")
     res = {'code':200, 'data':[], 'msg':'请求成功'}
     try:
         data = EasyQuotationExecutor().get_zs_hq()
+        api_logger.debug(f"成功获取三大指数数据，数据条数: {len(data)}")
         res['data'] = data
     except Exception as e:
-        print(e)
+        error_msg = str(e)
+        api_logger.error(f"获取三大指数数据失败: {error_msg}")
         res['code'] = 500
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
         return res
 
 @router.post('/overall/zt')
 async def get_zt_stocks(param:GetByDate=None):
     """获取涨停池并分组"""
-    res = {'code':200, 'data':[], 'msg':'请求成功', 'groupData':{'name':"涨停分析", 'value':'', 'children':[]}, 'marketValueDistribute':{}}
     if param is None or param.date is None:
         date = get_current_today()
     else:
         date = param.date
         date = date.replace('-', '')
+    api_logger.info(f"获取涨停池数据，日期: {date}")
+    res = {'code':200, 'data':[], 'msg':'请求成功', 'groupData':{'name':"涨停分析", 'value':'', 'children':[]}, 'marketValueDistribute':{}}
     try:
         df = ak.stock_zt_pool_em(date=date)
+        api_logger.debug(f"成功获取涨停池数据，日期: {date}, 数据条数: {len(df)}")
         df['首次封板时间'] = df['首次封板时间'].apply(fmt_hour_time)
         df['最后封板时间'] = df['最后封板时间'].apply(fmt_hour_time)
         df_dict = dftodict(df)
@@ -60,18 +66,21 @@ async def get_zt_stocks(param:GetByDate=None):
                 res_g['children'].append(stock_g)
             res['groupData']['children'].append(res_g)
     except Exception as e:
-        print(e)
+        error_msg = str(e)
+        api_logger.error(f"获取涨停池数据失败: {error_msg}")
         res['code'] = 500
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
         return res 
 
 @router.post('/overall/hq')
 async def get_hq_stocks():
     """获取赚钱效应分析"""
+    api_logger.info("获取赚钱效应分析数据")
     res = {'code':200, 'data':[], 'msg':'请求成功'}
     try:
         df = stock_market_activity_legu().fillna(-1)
+        api_logger.debug(f"成功获取赚钱效应分析数据，数据条数: {len(df)}")
         df_dict = dftodict(df)
         df_dict[2] = {'item':df_dict[2]['item']+'(非一字无量涨停)',
                       'value':df_dict[2]['value']}
@@ -94,7 +103,7 @@ async def get_hq_stocks():
         }
         res['data'] = [sz_res_info, xd_res_info, oter_res_info]
     except Exception as e:
-        print(e)
+        api_logger.error(f"获取赚钱效应分析数据失败: {e}")
         res['code'] = 500
         res['msg'] = str(e)
     finally:
@@ -103,17 +112,20 @@ async def get_hq_stocks():
 @router.post('/overall/dt')
 async def get_dt_stocks(param:GetByDate=None):
     """获取跌停池并分组"""
-    res = {'code':200, 'data':[], 'msg':'请求成功', 'groupData':{'name':"跌停分析", 'value':'', 'children':[]}, 'marketValueDistribute':[]}
     if param is None or param.date is None:
         date = get_current_today()
     else:
         date = param.date
         date = date.replace('-', '')
+    api_logger.info(f"获取跌停池数据，日期: {date}")
+    res = {'code':200, 'data':[], 'msg':'请求成功', 'groupData':{'name':"跌停分析", 'value':'', 'children':[]}, 'marketValueDistribute':[]}
     try:
         df = ak.stock_zt_pool_dtgc_em(date=date)
         if len(df)==0:
+            api_logger.info(f"跌停池无数据，日期: {date}")
             res['msg'] = '无数据'
             return res
+        api_logger.debug(f"成功获取跌停池数据，日期: {date}, 数据条数: {len(df)}")
         df['最后封板时间'] = df['最后封板时间'].apply(fmt_hour_time)
         df_dict = dftodict(df)
         df_dict = stock_common_info_by_name(df_dict, '名称')
@@ -135,17 +147,21 @@ async def get_dt_stocks(param:GetByDate=None):
                 res_g['children'].append(stock_g)
             res['groupData']['children'].append(res_g)
     except Exception as e:
+        error_msg = str(e)
+        api_logger.error(f"获取跌停池数据失败: {error_msg}")
         res['code'] = 500
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
         return res 
 
 @router.post('/overall/market')
 async def get_market_infos():
     """全市场分析"""
+    api_logger.info("获取全市场分析数据")
     res = {'code':200, 'data':[], 'msg':'请求成功', 'dates':[], 'rawData':[]}
     try:
         dates = get_time_before_n(n=5)
+        api_logger.debug(f"分析日期范围: {dates}")
         tmp_results = {}
         data_key = []
         for i, date in enumerate(dates):
@@ -168,23 +184,27 @@ async def get_market_infos():
         res['dataKey'] = data_key
         res['rawData'] = tmp_results 
     except Exception as e:
-        print(e)
+        error_msg = str(e)
+        api_logger.error(f"获取全市场分析数据失败: {error_msg}")
         res['code'] = 500
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
         return res 
 
 @router.post('/overall/market_zdf_group')
 async def get_market_infos_zdf():
     """全市场分析实时涨跌幅统计"""
+    api_logger.info("获取全市场实时涨跌幅统计数据")
     res = {'code':200, 'xData':[], 'msg':'请求成功', 'yData':[]}
     try:
         statistics_res, raw_df = staistics_zdt_group()
+        api_logger.debug(f"成功获取全市场实时涨跌幅统计数据，分组数: {len(statistics_res)}")
         res['xData'] = list(statistics_res.keys())
         res['yData'] = list(statistics_res.values())
     except Exception as e:
-        print(e)
+        error_msg = str(e)
+        api_logger.error(f"获取全市场实时涨跌幅统计数据失败: {error_msg}")
         res['code'] = 500
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
-        return res 
+        return res

@@ -2,10 +2,11 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from src.utils.common import *
 from src.utils.stock_utils import *
+from src.utils.logger_settings import api_logger
 try:
     import talib
 except Exception as e:
-    print(e)    
+    api_logger.error(f"Failed to import talib: {e}")
 from src.utils.talib_constant import *
 from src.utils.registy import CALCULATE_FACTOR_REGISTRY,CALCULATE_FACTOR_REGISTRY_DICT, CLS_REGISTRY_ADDRESS
 # from src.backtest.strategys.factors import *
@@ -13,6 +14,7 @@ router = APIRouter()
 
 @router.post('/analysis/get_ta_lib_indicator')
 async def get_ta_lib_indicator():
+    api_logger.info("Received request for get_ta_lib_indicator")
     res = {'code':200, 'msg':'请求成功', 'data':[], 'mappingData':{}} #mappingData 返回级联选择器对应的描述 first_second:
     try:
         data = [{'label':'成交量指标',
@@ -66,10 +68,12 @@ async def get_ta_lib_indicator():
             res['mappingData']['CALCULATE_FACTOR_REGISTRY_'+value] = item['desc']
             
     except Exception as e:
-        print(str(e))
+        error_msg = str(e)
+        api_logger.error(f"Error in get_ta_lib_indicator: {error_msg}")
         res['code'] = 500
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
+        api_logger.info(f"Completed get_ta_lib_indicator with code {res['code']}")
         return res
 
 class TALibItem(BaseModel):
@@ -81,6 +85,7 @@ class TALibItem(BaseModel):
 
 @router.post('/analysis/get_ta_lib_compute')
 async def ta_lib_compute(params:TALibItem):
+    api_logger.info(f"Received request for ta_lib_compute with code: {params.code}")
     res = {'code':200, 'msg':'', 'metricData':[], 'rawData':[], 'markPointData':[], 'viewType':None, 'returnName':[]}
     try:
         df = get_day_k_data(code=params.code,
@@ -88,6 +93,7 @@ async def ta_lib_compute(params:TALibItem):
                             end_date=params.endDate,
                             frequency=params.KLineType,
                             return_list=False)
+        api_logger.debug(f"Retrieved K-line data for {params.code}, shape: {df.shape}")
         rawData = dftodict(df)
         res['rawData'] = rawData
         func_name = params.funcInfo['funcName'] #[listName, funcname]
@@ -140,8 +146,10 @@ async def ta_lib_compute(params:TALibItem):
                             res['markPointData'].append(mk_res)
             res['viewType'] = func_info.get('view') #可视化的类型 subChart|markPoint|overlap(k线图重叠)
     except Exception as e:
-        print(e)
+        error_msg = str(e)
+        api_logger.error(f"Error in ta_lib_compute for {params.code}: {error_msg}")
         res['code'] = 500
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
+        api_logger.info(f"Completed ta_lib_compute for {params.code} with code {res['code']}")
         return res

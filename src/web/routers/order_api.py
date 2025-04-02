@@ -6,6 +6,7 @@ from src.utils.constant import *
 from fastapi import Depends
 from src.utils.store_util import *
 from src.api.tushare_executor import TuShareExecutor
+from src.utils.logger_settings import api_logger
 
 router = APIRouter()
 
@@ -23,6 +24,7 @@ class UpdateItem(OrderItem):
 @router.post('/order/add_order')
 async def add_order(params:OrderItem):
     """新增交割单"""
+    api_logger.info(f"添加交割单，用户ID: {params.userID}, 股票名: {params.stockName}")
     res = {'code':200, 'msg':'请求成功', 'status': 1}
     try:
         mysql_util = MysqlOrderUtil(host=HOST,
@@ -36,15 +38,19 @@ async def add_order(params:OrderItem):
                              stockStatus=params.stockStatus)
         res['status'] = int(r)
         res['msg'] = msg
+        api_logger.info(f"添加交割单结果: {msg}, 状态: {r}")
     except Exception as e:
+        error_msg = str(e)
+        api_logger.error(f"添加交割单失败: {error_msg}")
         res['code'] = 500
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
         return res
 
 @router.post('/order/update_order')
 async def update_order(params:UpdateItem):
     """新增交割单"""
+    api_logger.info(f"更新交割单，用户ID: {params.userID}, 股票名: {params.stockName}, ID: {params.id}")
     res = {'code':200, 'msg':'请求成功', 'status': 1}
     try:
         mysql_util = MysqlOrderUtil(host=HOST,
@@ -60,9 +66,12 @@ async def update_order(params:UpdateItem):
                              id=params.id)
         res['status'] = int(r)
         res['msg'] = msg
+        api_logger.info(f"更新交割单结果: {msg}, 状态: {r}")
     except Exception as e:
+        error_msg = str(e)
+        api_logger.error(f"更新交割单失败: {error_msg}")
         res['code'] = 500
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
         return res
 
@@ -73,6 +82,7 @@ class DeleteItem(BaseModel):
 @router.post('/order/delete_order')
 async def delete_order(params:DeleteItem):
     """新增交割单"""
+    api_logger.info(f"删除交割单，用户ID: {params.userID}, ID: {params.id}")
     res = {'code':200, 'msg':'请求成功', 'status': 1}
     try:
         mysql_util = MysqlOrderUtil(host=HOST,
@@ -81,9 +91,12 @@ async def delete_order(params:DeleteItem):
         r, msg = mysql_util.delete_order(id=params.id, user_id=params.userID)
         res['status'] = int(r)
         res['msg'] = msg
+        api_logger.info(f"删除交割单结果: {msg}, 状态: {r}")
     except Exception as e:
+        error_msg = str(e)
+        api_logger.error(f"删除交割单失败: {error_msg}")
         res['code'] = 500
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
         return res
 
@@ -103,6 +116,7 @@ class SelectItemByIndex(SelectItem):
 @router.post('/order/select_order')
 async def select_order(params:SelectItem):
     """查询"""
+    api_logger.info(f"查询交割单，用户ID: {params.userID}, 股票名: {params.stockName}, 分析: {params.analysis}, 汇总: {params.summary}")
     res = {'code':200, 'msg':'请求成功', 'data':[], 'columns':[], 'totalNumbers':0, 'uuidStr':''}
     try:
         mysql_util = MysqlOrderUtil(host=HOST,
@@ -114,6 +128,9 @@ async def select_order(params:SelectItem):
             data, msg = mysql_util.select_order(stock_name=params.stockName, user_id=params.userID)
         else:
             data, msg = mysql_util.select_order_and_sum(user_id=params.userID, stock_name=params.stockName)
+        
+        api_logger.debug(f"查询到交割单数据: {len(data)}条")
+        
         if params.analysis:
             codes = [x['代码'] for x in data]
             params = {
@@ -141,25 +158,31 @@ async def select_order(params:SelectItem):
             res['columns'] = list(data[0].keys())
         res['msg'] = msg
     except Exception as e:
+        error_msg = str(e)
+        api_logger.error(f"查询交割单失败: {error_msg}")
         res['code'] = 500
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
         return res
 
 @router.post('/order/select_order_by_index')
 async def select_order_by_index(params:SelectItemByIndex, items=Depends(get_order_cache)):
     """查询"""
+    api_logger.info(f"分页查询交割单，用户ID: {params.userID}, 页码: {params.currentPage}, 每页数量: {params.pageSize}")
     res = {'code':200, 'msg':'请求成功', 'data':[], 'columns':[]}
     try:
         data = get_order_by_index(uuid=params.uuidStr,
                                     start=params.currentPage,
                                     length=params.pageSize,
                                     items=items)
+        api_logger.debug(f"分页查询到交割单数据: {len(data)}条")
         res['data'] = data
         if len(data)>0:
             res['columns'] = list(data[0].keys())
     except Exception as e:
+        error_msg = str(e)
+        api_logger.error(f"分页查询交割单失败: {error_msg}")
         res['code'] = 500
-        res['msg'] = str(e)
+        res['msg'] = error_msg
     finally:
         return res
