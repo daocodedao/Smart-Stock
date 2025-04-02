@@ -95,6 +95,17 @@ async def get_selected_stock_data(data:SelectItem, store_item=Depends(get_items)
     finally:
         return result
 
+class IndexItem(BaseModel):
+    tabName:str
+    uuidStr:str
+    currentPage:int #当前页
+    pageSize:int #每页数量
+    
+class UuidItem(BaseModel):
+    uuidStr:str
+
+
+
 @router.post("/select_stocks/get_selected_stock_data_by_index")
 async def get_selected_stock_data_by_index(params:IndexItem, store_item=Depends(get_items)):
     api_logger.info(f"分页获取选股数据，UUID: {params.uuidStr}, 标签: {params.tabName}, 页码: {params.currentPage}, 每页数量: {params.pageSize}")
