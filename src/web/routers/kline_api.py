@@ -31,10 +31,16 @@ async def find_day_k_line_data(param:SelectDayItem):
     try:
         code = param.code
         n_fold = param.nYear
-        df = get_day_k_data(code=code, n_folds=n_fold, start_date=param.startDate, end_date=param.endDate, return_list=True, api_type='abu')
-        api_logger.debug(f"成功获取日K线数据，股票代码: {code}, 数据条数: {len(df)}")
-        df_res = dftodict(df)
-        res['rawData'] = df_res
+        try:
+            df = get_day_k_data(code=code, n_folds=n_fold, start_date=param.startDate, end_date=param.endDate, return_list=True, api_type='abu')
+            api_logger.debug(f"成功获取日K线数据，股票代码: {code}, 数据条数: {len(df)}")
+            df_res = dftodict(df)
+            res['rawData'] = df_res
+        except ImportError as ie:
+            # 处理 Iterable 导入错误
+            api_logger.warning(f"导入错误: {str(ie)}，尝试使用替代方法")
+            # 这里可以添加替代方案，例如使用其他API获取数据
+            raise Exception(f"获取K线数据时遇到导入错误: {str(ie)}，请检查依赖库版本")
     except Exception as e:
         error_msg = str(e)
         api_logger.error(f"获取日K线数据失败: {error_msg}")

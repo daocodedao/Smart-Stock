@@ -22,3 +22,4 @@ uvloop #nest_asyncio不支持
 # scipy==1.7.3
 numpy
 TA-Lib
+abupy
