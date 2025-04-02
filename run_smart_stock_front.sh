@@ -1,8 +1,7 @@
 #!/bin/bash
 # 获取脚本所在目录
-script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-base_dir="$( cd "$script_dir" && pwd )"
-echo "base_dir: $base_dir"
+# script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+base_dir="/data/work/Smart-Stock-Web"
 cd $base_dir
 
 
