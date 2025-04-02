@@ -10,7 +10,7 @@ jobDir="${base_dir}/src/web"
 echo "jobDir: $jobDir"
 pythonPath=${base_dir}/venv/bin/python
 
-. $base_dir/instock/bin/colors.sh
+. $base_dir/colors.sh
 
 logName=smart_stock_backend
 jobName=smart_stock_backend.py
