@@ -216,6 +216,7 @@ async def get_selected_stock_data_by_history(data:SelectItem, store_item=Depends
         result['totalNumbers'] = totalNumbers
         
         api_logger.info(f"历史选股完成，UUID: {uuid_str}, 结果分类数量: {len(res)}")
+        api_logger.info(result)
     except Exception as e:
         error_msg = str(e)
         api_logger.error(f"历史选股失败: {error_msg}")
