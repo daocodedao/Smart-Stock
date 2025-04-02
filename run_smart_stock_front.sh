@@ -33,4 +33,4 @@ echo "${YELLOW}nohup npm run dev -- --port $PORT > logs/${logName}.log 2>&1 &${N
 nohup npm run dev -- --port $PORT > logs/${logName}.log 2>&1 &
 
 echo ------Web服务已启动 请不要关闭------
-echo 访问地址 : http://localhost:38888/
+echo 访问地址 : http://localhost:$PORT/
