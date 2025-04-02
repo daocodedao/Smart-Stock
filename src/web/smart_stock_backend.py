@@ -25,7 +25,8 @@ app.include_router(backtrade_api.router)
 app.include_router(stock_inofs_api.router)
 
 def launch(host:str='0.0.0.0', port:int=38888, reload:bool=True):
-    uvicorn.run(app='smart_stock_backend:app', host=host, port=port, reload=reload, loop='uvloop')
+    # uvicorn.run(app='smart_stock_backend:app', host=host, port=port, reload=reload, loop='uvloop')
+    uvicorn.run(app='smart_stock_backend:app', host=host, port=port, reload=reload, loop='asyncio')
 
 if __name__ == '__main__':
     parser = ArgumentParser()
