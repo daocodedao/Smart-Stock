@@ -78,7 +78,8 @@ vim .env
     VITE_SERVER_IP=xxx.xxx.xxx.xxx
     VITE_SERVER_PORT=xxxxx
 ## 启动服务
-npm run dev
+npm run dev -- --port 38889
+
 ```
 
 
@@ -93,6 +94,14 @@ type = tcp
 local_ip = 127.0.0.1
 local_port = 38888
 remote_port = 38888
+use_encryption = false
+use_compression = false
+
+[ssh-SmartStock38889]
+type = tcp
+local_ip = 127.0.0.1
+local_port = 38889
+remote_port = 38889
 use_encryption = false
 use_compression = false
 
