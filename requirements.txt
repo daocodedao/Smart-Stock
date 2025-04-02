@@ -17,7 +17,7 @@ easyquotation
 alphalens
 qstock
 pywencai
-# uvloop #nest_asyncio不支持
+uvloop #nest_asyncio不支持
 # pandas==1.5.3
 # scipy==1.7.3
 numpy
