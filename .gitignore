@@ -141,3 +141,4 @@ cython_debug/
 outputs
 day_k_line_*.json
 *_logs/
+logs/
